@@ -1,7 +1,8 @@
 import digitalio
 import board
 import time
-# import busio
+import busio
+import adafruit_gps
 
 # Setup Stop Button
 write_pin = digitalio.DigitalInOut(board.GP0)
@@ -19,31 +20,32 @@ string = f.read()
 f.close()
 
 # initiates gps_module
-# gps_module = busio.UART(tx=board.GP4, rx=board.GP5)
+gps_module = busio.UART(tx=board.GP4, rx=board.GP5, baudrate=9600)
+gps = adafruit_gps.GPS(gps_module, debug=False)
 
-# Turns on LED
+# Turn on LED
 led.value = 1
-time_since = 0 # Used for checking time between writes (likely a more graceful way of implementation)
-
-# Give time to take finger off button
+# Wait so that user can unpress button
 time.sleep(5)
 
-temp = 0 # Temporary counter for testing can be deleted later
+last_print = time.monotonic() # Records current time
+
+# Opens file for writing, rewrites old data, and starts loop to gather fresh data
 f = open(data_filename, 'w')
 f.write(string)
 while True:
-    time_since += 1
-    if (time_since / 3 == 1):
-        time_since = 0
-        temp_str = f'\nNew Cordinates: {temp}' # Adjust Later
+    current = time.monotonic()
+    gps.update() # updates gps info
+    
+    if (current - last_print >= 3):
+        last_print = current
+        temp_str = f"\n{gps.timestamp_utc[3] + gps.timestamp_utc[4]/60},{gps.latitude},{gps.longitude}"
         f.write(temp_str)
-        temp += 1 # Delete Later
-        print(temp_str)   
-    time.sleep(1)
+        #print(temp_str)
+        
     if (not write_pin.value):
         f.close()
-        led.value = 0
         break
 
-print('Exited Loop')
+led.value = 0
 time.sleep(2)
