@@ -467,7 +467,10 @@
         checkbox.setAttribute("id", `map-station-${station.id}`);
         checkbox.setAttribute("name", "map-station");
         checkbox.setAttribute("value", station.id);
-        item.appendChild(checkbox);
+
+        const checkboxSpan = document.createElement("span");
+        checkboxSpan.appendChild(checkbox);
+        item.appendChild(checkboxSpan);
 
         const label = document.createElement("label");
         label.setAttribute("for", `map-station-${station.id}`);
