@@ -1,43 +1,41 @@
-const body = document.querySelector("body");
-
-const initialDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)");
-const colorThemeIcon = document.querySelector("#color-theme-icon");
-const colorThemeLabel = document.querySelector("#color-theme-label");
+const preferDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)");
+const themeIcon = document.querySelector("#theme-icon");
+const themeLabel = document.querySelector("#theme-label");
 const lightMapStyle = "mapbox://styles/mapbox/light-v10";
 const darkMapStyle = "mapbox://styles/mapbox/dark-v10";
 
 mapboxgl.accessToken = "pk.eyJ1IjoieXVuaGFvLXFpYW4iLCJhIjoiY2t3amQ1M2dsMWg2ZDJwcDhnY2RvMTFwNSJ9.-I-VVokbvicl2sNiLpLwiQ";
 const map = new mapboxgl.Map({
   container: "mapbox-container",
-  style: initialDark ? darkMapStyle : lightMapStyle,
+  style: preferDark ? darkMapStyle : lightMapStyle,
   center: [0, 0],
   zoom: 5,
 });
 
-function setColorTheme(theme, setMapStyle = true) {
+function setTheme(theme, setMapStyle = true) {
   if (theme === "dark") {
-    body.classList.add("dark-theme");
-    colorThemeIcon.innerText = "nightlight_round";
-    colorThemeLabel.innerText = "Dark";
+    document.body.classList.add("dark-theme");
+    themeIcon.innerText = "nightlight_round";
+    themeLabel.innerText = "Dark";
     if (setMapStyle) {
       map.setStyle(darkMapStyle);
     }
   } else {
-    body.classList.remove("dark-theme");
-    colorThemeIcon.innerText = "wb_sunny";
-    colorThemeLabel.innerText = "Light";
+    document.body.classList.remove("dark-theme");
+    themeIcon.innerText = "wb_sunny";
+    themeLabel.innerText = "Light";
     if (setMapStyle) {
       map.setStyle(lightMapStyle);
     }
   }
 }
 
-let colorTheme = initialDark ? "dark" : "light";
-setColorTheme(colorTheme, false);
+let theme = preferDark ? "dark" : "light";
+setTheme(theme, false);
 
-function toggleColorTheme() {
-  colorTheme = colorTheme === "light" ? "dark" : "light";
-  setColorTheme(colorTheme);
+function toggleTheme() {
+  theme = theme === "light" ? "dark" : "light";
+  setTheme(theme);
 }
 
 const drawer = document.querySelector("#drawer");
@@ -77,7 +75,6 @@ function selectPage(label) {
   } else {
     return;
   }
-
   activeTab.classList.add("drawer-tab-active");
   activePage.classList.add("main-page-active");
 
@@ -88,7 +85,6 @@ function selectPage(label) {
       map.once("load", () => map.resize());
     }
   }
-
   const mapDisplay = label === "map" ? "flex" : "none";
   for (const group of mapSettingGroups) {
     group.style.display = mapDisplay;
@@ -147,7 +143,7 @@ const { stations, paths } = queryMapData();
 
 const stationsSettingGroup = document.querySelector("#stations-setting-group");
 
-function addStationsSettingGroup() {
+function fillStationsSettingGroup() {
   stationsSettingGroup.innerHTML = "";
 
   const header = document.createElement("div");
@@ -178,9 +174,9 @@ function addStationsSettingGroup() {
   }
 }
 
-addStationsSettingGroup();
+fillStationsSettingGroup();
 
-function updateMapBounds() {
+function fitMapBounds() {
   if (stations.length === 0 || paths.length === 0) {
     return;
   }
@@ -201,4 +197,4 @@ function updateMapBounds() {
   }
 }
 
-updateMapBounds();
+fitMapBounds();

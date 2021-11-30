@@ -156,11 +156,11 @@ body.dark-theme {
   justify-self: stretch;
 }
 
-#color-theme-icon {
+#theme-icon {
   transition: transform 0.2s;
 }
 
-:hover>#color-theme-icon {
+:hover>#theme-icon {
   transform: scale(1.2);
 }
 
