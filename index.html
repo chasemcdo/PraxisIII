@@ -172,8 +172,7 @@
 
     .setting-item>:first-child {
       flex: 0 0 3rem;
-      box-sizing: border-box;
-      margin: 0;
+      text-align: center;
     }
 
     .setting-item>* {
@@ -182,7 +181,6 @@
     }
 
     #color-theme-icon {
-      text-align: center;
       transition: transform 0.2s;
     }
 
@@ -264,15 +262,21 @@
         <div class="setting-group">
           <div class="setting-header">Layer</div>
           <div class="setting-item">
-            <input type="radio" id="map-layer-heatmap" name="map-layer" value="heatmap">
+            <span>
+              <input type="radio" id="map-layer-heatmap" name="map-layer" value="heatmap">
+            </span>
             <label for="map-layer-heatmap">Heatmap</label>
           </div>
           <div class="setting-item">
-            <input type="radio" id="map-layer-paths" name="map-layer" value="paths">
+            <span>
+              <input type="radio" id="map-layer-paths" name="map-layer" value="paths">
+            </span>
             <label for="map-layer-paths">Paths</label>
           </div>
           <div class="setting-item">
-            <input type="radio" id="map-layer-none" name="map-layer" value="none">
+            <span>
+              <input type="radio" id="map-layer-none" name="map-layer" value="none">
+            </span>
             <label for="map-layer-none">None</label>
           </div>
         </div>
@@ -311,6 +315,8 @@
     const map = new mapboxgl.Map({
       container: "mapbox-container",
       style: initialDark ? darkMapStyle : lightMapStyle,
+      center: [0, 0],
+      zoom: 5,
     });
 
     function setColorTheme(theme, setMapStyle = true) {
