@@ -7,13 +7,26 @@
   <title>ReΨcology</title>
   <link rel="icon" type="image/svg" href="repsicology.svg">
 
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+
   <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
   <link href="https://api.mapbox.com/mapbox-gl-js/v2.6.0/mapbox-gl.css" rel="stylesheet">
   <script src="https://api.mapbox.com/mapbox-gl-js/v2.6.0/mapbox-gl.js"></script>
 
   <style>
     body {
-      font-family: Verdana, Arial, Helvetica, sans-serif;
+      font-family: "Open Sans", sans-serif;
+    }
+
+    .dark-theme,
+    .dark-theme * {
+      color: white;
+      transition: color 0.2s, background-color 0.2s;
+    }
+
+    body.dark-theme {
+      background-color: black;
     }
 
     .unselectable {
@@ -26,6 +39,7 @@
     #navigation-button {
       width: 48px;
       height: 48px;
+      border-bottom-right-radius: 4px;
       z-index: 2;
       position: fixed;
       top: 0px;
@@ -33,12 +47,19 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      font-size: 36px;
       background-color: whitesmoke;
+    }
+
+    .dark-theme #navigation-button {
+      background-color: #202020;
     }
 
     #navigation-button:hover {
       background-color: lightgray;
+    }
+
+    .dark-theme #navigation-button:hover {
+      background-color: #484848;
     }
 
     @media (min-width: 768px) {
@@ -48,7 +69,7 @@
     }
 
     #drawer {
-      width: min(300px, 100%);
+      width: min(300px, 100vw);
       height: 100%;
       z-index: 1;
       position: fixed;
@@ -64,8 +85,11 @@
       align-items: center;
       overflow-y: scroll;
       box-sizing: border-box;
-      padding-top: max(2rem, 24px);
-      padding-bottom: 2rem;
+      padding: max(2rem, 24px) calc(0.1 * min(300px, 100vw)) 2rem calc(0.1 * min(300px, 100vw));
+    }
+
+    .dark-theme #drawer {
+      background-color: #202020;
     }
 
     @media (max-width: 767px) {
@@ -74,7 +98,7 @@
       }
 
       #drawer.drawer-collapsed {
-        margin-left: calc(0px - min(300px, 100%));
+        margin-left: calc(0px - min(300px, 100vw));
         box-shadow: none;
       }
     }
@@ -84,24 +108,25 @@
     }
 
     #drawer>hr {
-      width: 90%;
+      width: 100%;
     }
 
     #drawer-tabs {
-      width: 90%;
       display: flex;
       flex-direction: column;
-      align-content: stretch;
+      align-items: stretch;
       justify-self: start;
+      align-self: stretch;
     }
 
     #drawer-tabs>* {
       display: flex;
-      align-content: center;
+      align-items: center;
       justify-content: center;
       font-size: 1.2rem;
       padding: 0.6rem;
       box-sizing: border-box;
+      border-radius: 4px;
     }
 
     #drawer-tabs>.drawer-tab-active {
@@ -113,43 +138,60 @@
       background-color: lightgray;
     }
 
-    #map-settings {
-      width: 90%;
-      flex-direction: column;
-      align-content: stretch;
-      justify-content: start;
+    .dark-theme #drawer-tabs>*:hover {
+      background-color: #484848;
     }
 
-    .map-setting-group {
+    .settings {
       display: flex;
       flex-direction: column;
-      align-content: stretch;
+      align-items: stretch;
+      justify-content: start;
+      align-self: stretch;
+    }
+
+    .setting-group {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
       justify-content: start;
     }
 
-    .map-setting-header {
+    .setting-header {
       font-size: 1.2rem;
       padding: 0.6rem;
     }
 
-    .map-setting-item {
+    .setting-item {
       font-size: 1rem;
       padding: 0.5rem;
       display: flex;
-      align-content: center;
+      align-items: center;
       justify-content: start;
     }
 
-    .map-setting-item>:first-child {
-      flex: 0 0 2rem;
+    .setting-item>:first-child {
+      flex: 0 0 3rem;
+      box-sizing: border-box;
+      margin: 0;
     }
 
-    .map-setting-item>* {
+    .setting-item>* {
       flex: 1 1 auto;
+      justify-self: stretch;
+    }
+
+    #color-theme-icon {
+      text-align: center;
+      transition: transform 0.2s;
+    }
+
+    :hover>#color-theme-icon {
+      transform: scale(1.2);
     }
 
     .main-page {
-      width: 100%;
+      width: 100vw;
       height: 100%;
       z-index: 0;
       position: fixed;
@@ -161,7 +203,7 @@
 
     @media (min-width: 768px) {
       .main-page {
-        width: calc(100% - 300px);
+        width: calc(100vw - 300px);
       }
     }
 
@@ -195,7 +237,9 @@
 
 <body>
   <nav>
-    <div id="navigation-button" class="unselectable" onclick="toggleDrawer()">≡</div>
+    <div id="navigation-button" class="unselectable" onclick="toggleDrawer()">
+      <span class="material-icons md-48">view_headline</span>
+    </div>
 
     <div id="drawer" class="drawer-collapsed">
       <img id="drawer-logo" src="repsicology.svg" alt="logo" />
@@ -206,24 +250,34 @@
       </div>
       <hr>
 
-      <div id="map-settings">
-        <div class="map-setting-group">
-          <div class="map-setting-header">Layer</div>
-          <div class="map-setting-item">
+      <div id="color-theme-settings" class="settings">
+        <div class="setting-group">
+          <div class="setting-header">Color Theme</div>
+          <div class="setting-item" onclick="toggleColorTheme()">
+            <span id="color-theme-icon" class="material-icons md-24 unselectable"></span>
+            <span id="color-theme-label" class="unselectable"></span>
+          </div>
+        </div>
+      </div>
+
+      <div id="map-settings" class="settings">
+        <div class="setting-group">
+          <div class="setting-header">Layer</div>
+          <div class="setting-item">
             <input type="radio" id="map-layer-heatmap" name="map-layer" value="heatmap">
             <label for="map-layer-heatmap">Heatmap</label>
           </div>
-          <div class="map-setting-item">
+          <div class="setting-item">
             <input type="radio" id="map-layer-paths" name="map-layer" value="paths">
             <label for="map-layer-paths">Paths</label>
           </div>
-          <div class="map-setting-item">
+          <div class="setting-item">
             <input type="radio" id="map-layer-none" name="map-layer" value="none">
             <label for="map-layer-none">None</label>
           </div>
         </div>
 
-        <div id="stations-setting-group" class="map-setting-group">
+        <div id="stations-setting-group" class="setting-group">
         </div>
       </div>
     </div>
@@ -245,11 +299,45 @@
   </main>
 
   <script>
+    const body = document.querySelector("body");
+
+    const initialDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)");
+    const colorThemeIcon = document.querySelector("#color-theme-icon");
+    const colorThemeLabel = document.querySelector("#color-theme-label");
+    const lightMapStyle = "mapbox://styles/mapbox/light-v10";
+    const darkMapStyle = "mapbox://styles/mapbox/dark-v10";
+
     mapboxgl.accessToken = "pk.eyJ1IjoieXVuaGFvLXFpYW4iLCJhIjoiY2t3amQ1M2dsMWg2ZDJwcDhnY2RvMTFwNSJ9.-I-VVokbvicl2sNiLpLwiQ";
     const map = new mapboxgl.Map({
       container: "mapbox-container",
-      style: "mapbox://styles/mapbox/streets-v11",
+      style: initialDark ? darkMapStyle : lightMapStyle,
     });
+
+    function setColorTheme(theme, setMapStyle = true) {
+      if (theme === "dark") {
+        body.classList.add("dark-theme");
+        colorThemeIcon.innerText = "nightlight_round";
+        colorThemeLabel.innerText = "Dark";
+        if (setMapStyle) {
+          map.setStyle(darkMapStyle);
+        }
+      } else {
+        body.classList.remove("dark-theme");
+        colorThemeIcon.innerText = "wb_sunny";
+        colorThemeLabel.innerText = "Light";
+        if (setMapStyle) {
+          map.setStyle(lightMapStyle);
+        }
+      }
+    }
+
+    let colorTheme = initialDark ? "dark" : "light";
+    setColorTheme(colorTheme, false);
+
+    function toggleColorTheme() {
+      colorTheme = colorTheme === "light" ? "dark" : "light";
+      setColorTheme(colorTheme);
+    }
 
     const drawer = document.querySelector("#drawer");
 
@@ -360,13 +448,13 @@
       stationsSettingGroup.innerHTML = "";
 
       const header = document.createElement("div");
-      header.classList.add("map-setting-header");
+      header.classList.add("setting-header");
       header.innerText = "Stations";
       stationsSettingGroup.appendChild(header);
 
       for (const station of stations) {
         const item = document.createElement("div");
-        item.classList.add("map-setting-item");
+        item.classList.add("setting-item");
 
         const checkbox = document.createElement("input");
         checkbox.setAttribute("type", "checkbox");
