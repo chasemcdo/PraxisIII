@@ -5,232 +5,16 @@
 <head>
   <meta charset="utf-8">
   <title>ReΨcology</title>
-  <link rel="icon" type="image/svg" href="repsicology.svg">
 
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans">
 
   <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
-  <link href="https://api.mapbox.com/mapbox-gl-js/v2.6.0/mapbox-gl.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/v2.6.0/mapbox-gl.css">
   <script src="https://api.mapbox.com/mapbox-gl-js/v2.6.0/mapbox-gl.js"></script>
 
-  <style>
-    body {
-      font-family: "Open Sans", sans-serif;
-    }
-
-    .dark-theme,
-    .dark-theme * {
-      color: white;
-      transition: color 0.2s, background-color 0.2s;
-    }
-
-    body.dark-theme {
-      background-color: black;
-    }
-
-    .unselectable {
-      -ms-user-select: none;
-      -webkit-user-select: none;
-      -moz-user-select: none;
-      user-select: none;
-    }
-
-    #navigation-button {
-      width: 48px;
-      height: 48px;
-      border-bottom-right-radius: 4px;
-      z-index: 2;
-      position: fixed;
-      top: 0px;
-      left: 0px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background-color: whitesmoke;
-    }
-
-    .dark-theme #navigation-button {
-      background-color: #202020;
-    }
-
-    #navigation-button:hover {
-      background-color: lightgray;
-    }
-
-    .dark-theme #navigation-button:hover {
-      background-color: #484848;
-    }
-
-    @media (min-width: 768px) {
-      #navigation-button {
-        display: none;
-      }
-    }
-
-    #drawer {
-      width: min(300px, 100vw);
-      height: 100%;
-      z-index: 1;
-      position: fixed;
-      top: 0px;
-      left: 0px;
-      margin-left: 0px;
-      background-color: whitesmoke;
-      transition-property: margin-left, box-shadow;
-      transition-duration: 0.5s;
-      display: flex;
-      flex-direction: column;
-      justify-content: start;
-      align-items: center;
-      overflow-y: scroll;
-      box-sizing: border-box;
-      padding: max(2rem, 24px) calc(0.1 * min(300px, 100vw)) 2rem calc(0.1 * min(300px, 100vw));
-    }
-
-    .dark-theme #drawer {
-      background-color: #202020;
-    }
-
-    @media (max-width: 767px) {
-      #drawer {
-        box-shadow: 0px 0px 16px gray;
-      }
-
-      #drawer.drawer-collapsed {
-        margin-left: calc(0px - min(300px, 100vw));
-        box-shadow: none;
-      }
-    }
-
-    #drawer-logo {
-      max-width: 50%;
-    }
-
-    #drawer>hr {
-      width: 100%;
-    }
-
-    #drawer-tabs {
-      display: flex;
-      flex-direction: column;
-      align-items: stretch;
-      justify-self: start;
-      align-self: stretch;
-    }
-
-    #drawer-tabs>* {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.2rem;
-      padding: 0.6rem;
-      box-sizing: border-box;
-      border-radius: 4px;
-    }
-
-    #drawer-tabs>.drawer-tab-active {
-      border-left: 5px solid #039E8F;
-      padding-left: calc(0.6rem - 5px);
-    }
-
-    #drawer-tabs>*:hover {
-      background-color: lightgray;
-    }
-
-    .dark-theme #drawer-tabs>*:hover {
-      background-color: #484848;
-    }
-
-    .settings {
-      display: flex;
-      flex-direction: column;
-      align-items: stretch;
-      justify-content: start;
-      align-self: stretch;
-    }
-
-    .setting-group {
-      display: flex;
-      flex-direction: column;
-      align-items: stretch;
-      justify-content: start;
-    }
-
-    .setting-header {
-      font-size: 1.2rem;
-      padding: 0.6rem;
-    }
-
-    .setting-item {
-      font-size: 1rem;
-      padding: 0.5rem;
-      display: flex;
-      align-items: center;
-      justify-content: start;
-    }
-
-    .setting-item>:first-child {
-      flex: 0 0 3rem;
-      text-align: center;
-    }
-
-    .setting-item>* {
-      flex: 1 1 auto;
-      justify-self: stretch;
-    }
-
-    #color-theme-icon {
-      transition: transform 0.2s;
-    }
-
-    :hover>#color-theme-icon {
-      transform: scale(1.2);
-    }
-
-    .main-page {
-      width: 100vw;
-      height: 100%;
-      z-index: 0;
-      position: fixed;
-      top: 0px;
-      right: 0px;
-      display: none;
-      box-sizing: border-box;
-    }
-
-    @media (min-width: 768px) {
-      .main-page {
-        width: calc(100vw - 300px);
-      }
-    }
-
-    .main-page.main-page-active {
-      display: block;
-    }
-
-    #mapbox-container {
-      width: 100%;
-      height: 100%;
-    }
-
-    #about-page {
-      padding: 2rem;
-      overflow-y: scroll;
-    }
-
-    @media (max-width: 767px) {
-      #about-page {
-        padding-top: max(2rem, 48px);
-      }
-    }
-
-    #about-page>* {
-      max-width: 42rem;
-      margin-left: auto;
-      margin-right: auto;
-    }
-  </style>
+  <link rel="icon" type="image/svg" href="repsicology.svg">
+  <link rel="stylesheet" href="index.css">
 </head>
 
 <body>
@@ -248,41 +32,37 @@
       </div>
       <hr>
 
-      <div id="color-theme-settings" class="settings">
-        <div class="setting-group">
-          <div class="setting-header">Color Theme</div>
-          <div class="setting-item" onclick="toggleColorTheme()">
-            <span id="color-theme-icon" class="material-icons md-24 unselectable"></span>
-            <span id="color-theme-label" class="unselectable"></span>
-          </div>
+      <div class="setting-group">
+        <div class="setting-header">Color Theme</div>
+        <div class="setting-item" onclick="toggleColorTheme()">
+          <span id="color-theme-icon" class="material-icons md-24 unselectable"></span>
+          <span id="color-theme-label"></span>
         </div>
       </div>
 
-      <div id="map-settings" class="settings">
-        <div class="setting-group">
-          <div class="setting-header">Layer</div>
-          <div class="setting-item">
-            <span>
-              <input type="radio" id="map-layer-heatmap" name="map-layer" value="heatmap">
-            </span>
-            <label for="map-layer-heatmap">Heatmap</label>
-          </div>
-          <div class="setting-item">
-            <span>
-              <input type="radio" id="map-layer-paths" name="map-layer" value="paths">
-            </span>
-            <label for="map-layer-paths">Paths</label>
-          </div>
-          <div class="setting-item">
-            <span>
-              <input type="radio" id="map-layer-none" name="map-layer" value="none">
-            </span>
-            <label for="map-layer-none">None</label>
-          </div>
+      <div class="setting-group map-setting-group">
+        <div class="setting-header">Layer</div>
+        <div class="setting-item">
+          <span>
+            <input type="radio" id="map-layer-heatmap" name="map-layer" value="heatmap">
+          </span>
+          <label for="map-layer-heatmap">Heatmap</label>
         </div>
+        <div class="setting-item">
+          <span>
+            <input type="radio" id="map-layer-paths" name="map-layer" value="paths">
+          </span>
+          <label for="map-layer-paths">Paths</label>
+        </div>
+        <div class="setting-item">
+          <span>
+            <input type="radio" id="map-layer-none" name="map-layer" value="none">
+          </span>
+          <label for="map-layer-none">None</label>
+        </div>
+      </div>
 
-        <div id="stations-setting-group" class="setting-group">
-        </div>
+      <div id="stations-setting-group" class="setting-group map-setting-group">
       </div>
     </div>
   </nav>
@@ -302,210 +82,7 @@
     </div>
   </main>
 
-  <script>
-    const body = document.querySelector("body");
-
-    const initialDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)");
-    const colorThemeIcon = document.querySelector("#color-theme-icon");
-    const colorThemeLabel = document.querySelector("#color-theme-label");
-    const lightMapStyle = "mapbox://styles/mapbox/light-v10";
-    const darkMapStyle = "mapbox://styles/mapbox/dark-v10";
-
-    mapboxgl.accessToken = "pk.eyJ1IjoieXVuaGFvLXFpYW4iLCJhIjoiY2t3amQ1M2dsMWg2ZDJwcDhnY2RvMTFwNSJ9.-I-VVokbvicl2sNiLpLwiQ";
-    const map = new mapboxgl.Map({
-      container: "mapbox-container",
-      style: initialDark ? darkMapStyle : lightMapStyle,
-      center: [0, 0],
-      zoom: 5,
-    });
-
-    function setColorTheme(theme, setMapStyle = true) {
-      if (theme === "dark") {
-        body.classList.add("dark-theme");
-        colorThemeIcon.innerText = "nightlight_round";
-        colorThemeLabel.innerText = "Dark";
-        if (setMapStyle) {
-          map.setStyle(darkMapStyle);
-        }
-      } else {
-        body.classList.remove("dark-theme");
-        colorThemeIcon.innerText = "wb_sunny";
-        colorThemeLabel.innerText = "Light";
-        if (setMapStyle) {
-          map.setStyle(lightMapStyle);
-        }
-      }
-    }
-
-    let colorTheme = initialDark ? "dark" : "light";
-    setColorTheme(colorTheme, false);
-
-    function toggleColorTheme() {
-      colorTheme = colorTheme === "light" ? "dark" : "light";
-      setColorTheme(colorTheme);
-    }
-
-    const drawer = document.querySelector("#drawer");
-
-    function toggleDrawer() {
-      if (drawer.classList.contains("drawer-collapsed")) {
-        drawer.classList.remove("drawer-collapsed");
-      } else {
-        drawer.classList.add("drawer-collapsed");
-      }
-    }
-
-    const mapTab = document.querySelector("#map-tab");
-    const aboutTab = document.querySelector("#about-tab");
-    let activeTab = undefined;
-    const mapPage = document.querySelector("#map-page");
-    const aboutPage = document.querySelector("#about-page");
-    let activePage = undefined;
-    const mapSettings = document.querySelector("#map-settings");
-
-    function selectPage(label) {
-      if (activeTab !== undefined) {
-        activeTab.classList.remove("drawer-tab-active");
-        activeTab = undefined;
-      }
-      if (activePage !== undefined) {
-        activePage.classList.remove("main-page-active");
-        activePage = undefined;
-      }
-
-      if (label === "map") {
-        activeTab = mapTab;
-        activePage = mapPage;
-      } else if (label === "about") {
-        activeTab = aboutTab;
-        activePage = aboutPage;
-      } else {
-        return;
-      }
-
-      activeTab.classList.add("drawer-tab-active");
-      activePage.classList.add("main-page-active");
-
-      if (label === "map") {
-        if (map.loaded()) {
-          map.resize();
-        } else {
-          map.once("load", () => map.resize());
-        }
-        mapSettings.style.display = "flex";
-      } else {
-        mapSettings.style.display = "none";
-      }
-    }
-
-    selectPage("map");
-
-    function queryMapData() {
-      const nStations = 3;
-      const nPaths = 100;
-
-      function makeLocation() {
-        return [-0.24 + 0.08 * Math.random(), 5.54 + 0.06 * Math.random()];
-      }
-
-      const stations = [];
-      for (let i = 0; i < nStations; ++i) {
-        stations.push({
-          id: `station-${i}`,
-          location: makeLocation(),
-          name: `Station ${i}`,
-        });
-      }
-
-      function makePath(index) {
-        const data = [];
-        let time = Date.now() - Math.random() * (60 * 24 * 60 * 60 * 1000);
-        let iStation = Math.floor(3 * Math.random());
-        let location = stations[iStation].location;
-
-        for (let i = 0; i < 50; ++i) {
-          data.push({ time, location });
-          time -= Math.random() * (10 * 60 * 1000);
-          location = [
-            location[0] + 2e-3 * Math.random() - 1e-3,
-            location[1] + 2e-3 * Math.random() - 1e-3
-          ];
-        }
-        return {
-          id: `path-${index}`,
-          station: `station-${iStation}`,
-          data: data.reverse(),
-        };
-      }
-
-      const paths = [];
-      for (let i = 0; i < nPaths; ++i) {
-        paths.push(makePath(i));
-      }
-
-      return { stations, paths };
-    }
-
-    const { stations, paths } = queryMapData();
-
-    const stationsSettingGroup = document.querySelector("#stations-setting-group");
-
-    function addStationsSettingGroup() {
-      stationsSettingGroup.innerHTML = "";
-
-      const header = document.createElement("div");
-      header.classList.add("setting-header");
-      header.innerText = "Stations";
-      stationsSettingGroup.appendChild(header);
-
-      for (const station of stations) {
-        const item = document.createElement("div");
-        item.classList.add("setting-item");
-
-        const checkbox = document.createElement("input");
-        checkbox.setAttribute("type", "checkbox");
-        checkbox.setAttribute("id", `map-station-${station.id}`);
-        checkbox.setAttribute("name", "map-station");
-        checkbox.setAttribute("value", station.id);
-
-        const checkboxSpan = document.createElement("span");
-        checkboxSpan.appendChild(checkbox);
-        item.appendChild(checkboxSpan);
-
-        const label = document.createElement("label");
-        label.setAttribute("for", `map-station-${station.id}`);
-        label.innerText = station.name;
-        item.appendChild(label);
-
-        stationsSettingGroup.appendChild(item);
-      }
-    }
-
-    addStationsSettingGroup();
-
-    function updateMapBounds() {
-      if (stations.length === 0 || paths.length === 0) {
-        return;
-      }
-      const bounds = new mapboxgl.LngLatBounds(stations[0].location, stations[0].location);
-      for (const station of stations) {
-        bounds.extend(station.location);
-      }
-      for (const path of paths) {
-        for (const point of path.data) {
-          bounds.extend(point.location);
-        }
-      }
-
-      if (map.loaded()) {
-        map.fitBounds(bounds, { padding: 50 });
-      } else {
-        map.once("load", () => map.fitBounds(bounds, { padding: 50 }));
-      }
-    }
-
-    updateMapBounds();
-  </script>
+  <script src="index.js"></script>
 </body>
 
 </html>
