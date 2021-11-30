@@ -1,0 +1,410 @@
+<!doctype html>
+
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>ReΨcology</title>
+  <link rel="icon" type="image/svg" href="repsicology.svg">
+
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+  <link href="https://api.mapbox.com/mapbox-gl-js/v2.6.0/mapbox-gl.css" rel="stylesheet">
+  <script src="https://api.mapbox.com/mapbox-gl-js/v2.6.0/mapbox-gl.js"></script>
+
+  <style>
+    .unselectable {
+      -ms-user-select: none;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      user-select: none;
+    }
+
+    #navigation-button {
+      width: 48px;
+      height: 48px;
+      z-index: 2;
+      position: fixed;
+      top: 0px;
+      left: 0px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 36px;
+      background-color: whitesmoke;
+    }
+
+    #navigation-button:hover {
+      background-color: lightgray;
+    }
+
+    @media (min-width: 576px) {
+      #navigation-button {
+        display: none;
+      }
+    }
+
+    #drawer {
+      width: min(300px, 100vw);
+      height: 100vh;
+      z-index: 1;
+      position: fixed;
+      top: 0px;
+      left: 0px;
+      margin-left: 0px;
+      background-color: whitesmoke;
+      transition-property: margin-left, box-shadow;
+      transition-duration: 0.5s;
+      display: flex;
+      flex-direction: column;
+      justify-content: start;
+      align-items: center;
+      overflow-y: scroll;
+      box-sizing: border-box;
+      padding-top: max(2rem, 24px);
+      padding-bottom: 2rem;
+    }
+
+    @media (max-width: 575px) {
+      #drawer {
+        box-shadow: 0px 0px 16px gray;
+      }
+
+      #drawer.drawer-collapsed {
+        margin-left: calc(0px - min(300px, 100vw));
+        box-shadow: none;
+      }
+    }
+
+    #drawer-logo {
+      max-width: 50%;
+    }
+
+    #drawer>hr {
+      width: 90%;
+    }
+
+    #drawer-tabs {
+      width: 90%;
+      display: flex;
+      flex-direction: column;
+      align-content: stretch;
+      justify-self: start;
+    }
+
+    #drawer-tabs>* {
+      display: flex;
+      align-content: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      padding: 0.6rem;
+      box-sizing: border-box;
+    }
+
+    #drawer-tabs>.drawer-tab-active {
+      border-left: 5px solid #039E8F;
+      padding-left: calc(0.6rem - 5px);
+    }
+
+    #drawer-tabs>*:hover {
+      background-color: lightgray;
+    }
+
+    #map-settings {
+      width: 90%;
+      flex-direction: column;
+      align-content: stretch;
+      justify-content: start;
+    }
+
+    .map-setting-group {
+      display: flex;
+      flex-direction: column;
+      align-content: stretch;
+      justify-content: start;
+    }
+
+    .map-setting-header {
+      font-size: 1.2rem;
+      padding: 0.6rem;
+    }
+
+    .map-setting-item {
+      font-size: 1rem;
+      padding: 0.5rem;
+      display: flex;
+      align-content: center;
+      justify-content: start;
+    }
+
+    .map-setting-item>:first-child {
+      flex: 0 0 2rem;
+    }
+
+    .map-setting-item>* {
+      flex: 1 1 auto;
+    }
+
+    .main-page {
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      position: fixed;
+      top: 0px;
+      right: 0px;
+      display: none;
+      box-sizing: border-box;
+    }
+
+    @media (min-width: 576px) {
+      .main-page {
+        width: calc(100vw - min(300px, 100vw));
+      }
+    }
+
+    .main-page.main-page-active {
+      display: block;
+    }
+
+    #mapbox-container {
+      width: 100%;
+      height: 100%;
+    }
+
+    #about-page {
+      padding: 2rem;
+      overflow-y: scroll;
+    }
+
+    @media (max-width: 575px) {
+      #about-page {
+        padding-top: max(2rem, 48px);
+      }
+    }
+
+    #about-page>* {
+      max-width: 42rem;
+      margin-left: auto;
+      margin-right: auto;
+    }
+  </style>
+</head>
+
+<body>
+  <nav>
+    <div id="navigation-button" class="unselectable" onclick="toggleDrawer()">≡</div>
+
+    <div id="drawer" class="drawer-collapsed">
+      <img id="drawer-logo" src="repsicology.svg" alt="logo" />
+      <hr>
+      <div id="drawer-tabs">
+        <div id="map-tab" onclick="selectPage('map')">Map</div>
+        <div id="about-tab" onclick="selectPage('about')">About Us</div>
+      </div>
+      <hr>
+
+      <div id="map-settings">
+        <div class="map-setting-group">
+          <div class="map-setting-header">Layer</div>
+          <div class="map-setting-item">
+            <input type="radio" id="map-layer-heatmap" name="map-layer" value="heatmap">
+            <label for="map-layer-heatmap">Heatmap</label>
+          </div>
+          <div class="map-setting-item">
+            <input type="radio" id="map-layer-paths" name="map-layer" value="paths">
+            <label for="map-layer-paths">Paths</label>
+          </div>
+          <div class="map-setting-item">
+            <input type="radio" id="map-layer-none" name="map-layer" value="none">
+            <label for="map-layer-none">None</label>
+          </div>
+        </div>
+
+        <div id="stations-setting-group" class="map-setting-group">
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <div id="map-page" class="main-page">
+      <div id="mapbox-container"></div>
+    </div>
+
+    <div id="about-page" class="main-page">
+      <h1>About Us</h1>
+      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore
+        magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+        consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
+        pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est
+        laborum.</p>
+    </div>
+  </main>
+
+  <script>
+    mapboxgl.accessToken = "pk.eyJ1IjoieXVuaGFvLXFpYW4iLCJhIjoiY2t3amQ1M2dsMWg2ZDJwcDhnY2RvMTFwNSJ9.-I-VVokbvicl2sNiLpLwiQ";
+    const map = new mapboxgl.Map({
+      container: "mapbox-container",
+      style: "mapbox://styles/mapbox/streets-v11",
+    });
+
+    const drawer = document.querySelector("#drawer");
+
+    function toggleDrawer() {
+      if (drawer.classList.contains("drawer-collapsed")) {
+        drawer.classList.remove("drawer-collapsed");
+      } else {
+        drawer.classList.add("drawer-collapsed");
+      }
+    }
+
+    const mapTab = document.querySelector("#map-tab");
+    const aboutTab = document.querySelector("#about-tab");
+    let activeTab = undefined;
+    const mapPage = document.querySelector("#map-page");
+    const aboutPage = document.querySelector("#about-page");
+    let activePage = undefined;
+    const mapSettings = document.querySelector("#map-settings");
+
+    function selectPage(label) {
+      if (activeTab !== undefined) {
+        activeTab.classList.remove("drawer-tab-active");
+        activeTab = undefined;
+      }
+      if (activePage !== undefined) {
+        activePage.classList.remove("main-page-active");
+        activePage = undefined;
+      }
+
+      if (label === "map") {
+        activeTab = mapTab;
+        activePage = mapPage;
+      } else if (label === "about") {
+        activeTab = aboutTab;
+        activePage = aboutPage;
+      } else {
+        return;
+      }
+
+      activeTab.classList.add("drawer-tab-active");
+      activePage.classList.add("main-page-active");
+
+      if (label === "map") {
+        if (map.loaded()) {
+          map.resize();
+        } else {
+          map.once("load", () => map.resize());
+        }
+        mapSettings.style.display = "flex";
+      } else {
+        mapSettings.style.display = "none";
+      }
+    }
+
+    selectPage("map");
+
+    function queryMapData() {
+      const nStations = 3;
+      const nPaths = 100;
+
+      function makeLocation() {
+        return [-0.24 + 0.08 * Math.random(), 5.54 + 0.06 * Math.random()];
+      }
+
+      const stations = [];
+      for (let i = 0; i < nStations; ++i) {
+        stations.push({
+          id: `station-${i}`,
+          location: makeLocation(),
+          name: `Station ${i}`,
+        });
+      }
+
+      function makePath(index) {
+        const data = [];
+        let time = Date.now() - Math.random() * (60 * 24 * 60 * 60 * 1000);
+        let iStation = Math.floor(3 * Math.random());
+        let location = stations[iStation].location;
+
+        for (let i = 0; i < 50; ++i) {
+          data.push({ time, location });
+          time -= Math.random() * (10 * 60 * 1000);
+          location = [
+            location[0] + 2e-3 * Math.random() - 1e-3,
+            location[1] + 2e-3 * Math.random() - 1e-3
+          ];
+        }
+        return {
+          id: `path-${index}`,
+          station: `station-${iStation + 1}`,
+          data: data.reverse(),
+        };
+      }
+
+      const paths = [];
+      for (let i = 0; i < nPaths; ++i) {
+        paths.push(makePath(i));
+      }
+
+      return { stations, paths };
+    }
+
+    const { stations, paths } = queryMapData();
+
+    const stationsSettingGroup = document.querySelector("#stations-setting-group");
+
+    function addStationsSettingGroup() {
+      stationsSettingGroup.innerHTML = "";
+
+      const header = document.createElement("div");
+      header.classList.add("map-setting-header");
+      header.innerText = "Stations";
+      stationsSettingGroup.appendChild(header);
+
+      for (const station of stations) {
+        const item = document.createElement("div");
+        item.classList.add("map-setting-item");
+
+        const checkbox = document.createElement("input");
+        checkbox.setAttribute("type", "checkbox");
+        checkbox.setAttribute("id", `map-station-${station.id}`);
+        checkbox.setAttribute("name", "map-station");
+        checkbox.setAttribute("value", station.id);
+        item.appendChild(checkbox);
+
+        const label = document.createElement("label");
+        label.setAttribute("for", `map-station-${station.id}`);
+        label.innerText = station.name;
+        item.appendChild(label);
+
+        stationsSettingGroup.appendChild(item);
+      }
+    }
+
+    addStationsSettingGroup();
+
+    function updateMapBounds() {
+      if (stations.length === 0 || paths.length === 0) {
+        return;
+      }
+      const bounds = new mapboxgl.LngLatBounds(stations[0].location, stations[0].location);
+      for (const station of stations) {
+        bounds.extend(station.location);
+      }
+      for (const path of paths) {
+        for (const point of path.data) {
+          bounds.extend(point.location);
+        }
+      }
+
+      if (map.loaded()) {
+        map.fitBounds(bounds, { padding: 50 });
+      } else {
+        map.once("load", () => map.fitBounds(bounds, { padding: 50 }));
+      }
+    }
+
+    updateMapBounds();
+  </script>
+</body>
+
+</html>
