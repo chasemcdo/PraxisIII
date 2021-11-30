@@ -12,32 +12,6 @@ const map = new mapboxgl.Map({
   zoom: 5,
 });
 
-function setTheme(theme, setMapStyle = true) {
-  if (theme === "dark") {
-    document.body.classList.add("dark-theme");
-    themeIcon.innerText = "nightlight_round";
-    themeLabel.innerText = "Dark";
-    if (setMapStyle) {
-      map.setStyle(darkMapStyle);
-    }
-  } else {
-    document.body.classList.remove("dark-theme");
-    themeIcon.innerText = "wb_sunny";
-    themeLabel.innerText = "Light";
-    if (setMapStyle) {
-      map.setStyle(lightMapStyle);
-    }
-  }
-}
-
-let theme = preferDark ? "dark" : "light";
-setTheme(theme, false);
-
-function toggleTheme() {
-  theme = theme === "light" ? "dark" : "light";
-  setTheme(theme);
-}
-
 const drawer = document.querySelector("#drawer");
 
 function toggleDrawer() {
@@ -57,11 +31,11 @@ let activePage = undefined;
 const mapSettingGroups = document.querySelectorAll("#map-setting-group");
 
 function selectPage(label) {
-  if (activeTab !== undefined) {
+  if (typeof activeTab !== "undefined") {
     activeTab.classList.remove("drawer-tab-active");
     activeTab = undefined;
   }
-  if (activePage !== undefined) {
+  if (typeof activePage !== "undefined") {
     activePage.classList.remove("main-page-active");
     activePage = undefined;
   }
@@ -140,8 +114,162 @@ function queryMapData() {
 }
 
 const { stations, paths } = queryMapData();
+let filteredPaths = [];
 
+function convertToHeatmapData() {
+  return {
+    type: "FeatureCollection",
+    features: filteredPaths.map(path => ({
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: path.data[0].location,
+      },
+      "properties": {},
+    })),
+  };
+}
+
+function convertToPathsData() {
+  return {
+    type: "FeatureCollection",
+    features: filteredPaths.map(path => ({
+      type: "Feature",
+      geometry: {
+        type: "LineString",
+        coordinates: path.data.map(record => record.location),
+      },
+    })),
+  };
+}
+
+let filteredStations = new Set();
+
+function updateFilteredStations(newStations) {
+  function areSetsEqual(a, b) {
+    if (a.size !== b.size) {
+      return false;
+    }
+    for (const e of a) {
+      if (!b.has(e)) {
+        return false;
+      }
+    }
+    return true;
+  }
+  if (typeof filteredStations === "undefined" || !areSetsEqual(filteredStations, newStations)) {
+    filteredStations = newStations;
+    filteredPaths = paths.filter(path => filteredStations.has(path.station));
+  }
+}
+
+let selectedLayer = undefined;
+const layerSettingGroup = document.querySelector("#layer-setting-group");
 const stationsSettingGroup = document.querySelector("#stations-setting-group");
+
+function updateMapDisplay() {
+  const newStations = new Set();
+  for (const input of stationsSettingGroup.querySelectorAll("input")) {
+    if (input.checked) {
+      newStations.add(input.value);
+    }
+  }
+  updateFilteredStations(newStations);
+
+  let newLayer = undefined;
+  for (const input of layerSettingGroup.querySelectorAll("input")) {
+    if (input.checked) {
+      newLayer = input.value;
+      break;
+    }
+  }
+  const layerChanged = typeof selectedLayer === "undefined" || selectedLayer !== newLayer;
+  if (layerChanged) {
+    selectedLayer = newLayer;
+  }
+
+  function updateSource(sourceId, data) {
+    const source = map.getSource(sourceId);
+    if (!source) {
+      map.addSource(sourceId, {
+        type: "geojson",
+        data,
+      });
+    } else {
+      source.setData(data);
+    }
+  }
+
+  function showLayer(layerId, type, source) {
+    if (typeof map.getLayer(layerId) === "undefined") {
+      map.addLayer({
+        id: layerId,
+        type,
+        source,
+      });
+    }
+    map.setLayoutProperty(layerId, "visibility", "visible");
+  }
+
+  function hideLayer(layerId) {
+    if (typeof map.getLayer(layerId) !== "undefined") {
+      map.setLayoutProperty(layerId, "visibility", "none");
+    }
+  }
+
+  if (selectedLayer === "heatmap") {
+    updateSource("heatmap-source", convertToHeatmapData());
+    hideLayer("paths-layer");
+    showLayer("heatmap-layer", "heatmap", "heatmap-source");
+  } else if (selectedLayer === "paths") {
+    updateSource("paths-source", convertToPathsData());
+    hideLayer("heatmap-layer");
+    showLayer("paths-layer", "line", "paths-source");
+  } else {
+    hideLayer("heatmap-layer");
+    hideLayer("paths-layer");
+  }
+}
+
+function updateMapDisplayWhenLoaded() {
+  if (map.loaded()) {
+    updateMapDisplay();
+  } else {
+    map.once("load", () => updateMapDisplay());
+  }
+}
+
+for (const input of layerSettingGroup.querySelectorAll("input")) {
+  input.addEventListener("change", updateMapDisplayWhenLoaded);
+}
+
+function setTheme(theme, setMapStyle = true) {
+  if (theme === "dark") {
+    document.body.classList.add("dark-theme");
+    themeIcon.innerText = "nightlight_round";
+    themeLabel.innerText = "Dark";
+    if (setMapStyle) {
+      map.setStyle(darkMapStyle);
+    }
+  } else {
+    document.body.classList.remove("dark-theme");
+    themeIcon.innerText = "wb_sunny";
+    themeLabel.innerText = "Light";
+    if (setMapStyle) {
+      map.setStyle(lightMapStyle);
+    }
+  }
+  selectedLayer = undefined;
+  updateMapDisplayWhenLoaded();
+}
+
+let theme = preferDark ? "dark" : "light";
+setTheme(theme, false);
+
+function toggleTheme() {
+  theme = theme === "light" ? "dark" : "light";
+  setTheme(theme);
+}
 
 function fillStationsSettingGroup() {
   stationsSettingGroup.innerHTML = "";
@@ -160,6 +288,8 @@ function fillStationsSettingGroup() {
     checkbox.setAttribute("id", `map-station-${station.id}`);
     checkbox.setAttribute("name", "map-station");
     checkbox.setAttribute("value", station.id);
+    checkbox.checked = true;
+    checkbox.addEventListener("change", updateMapDisplayWhenLoaded);
 
     const checkboxSpan = document.createElement("span");
     checkboxSpan.appendChild(checkbox);
