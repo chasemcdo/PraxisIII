@@ -5,8 +5,8 @@
   --drawer-default-width: 300px;
   --drawer-width: min(var(--drawer-default-width), 100vw);
   --accent-color: #039E8F;
-  --drawer-background: #E0E0E0;
-  --drawer-background-dark: #202020;
+  --drawer-background: #F0F0F0;
+  --drawer-background-dark: #101010;
   --hover-background: #C0C0C0;
   --hover-background-dark: #404040;
 }
