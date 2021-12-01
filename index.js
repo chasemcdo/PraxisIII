@@ -4,13 +4,25 @@ const themeLabel = document.querySelector("#theme-label");
 const lightMapStyle = "mapbox://styles/mapbox/light-v10";
 const darkMapStyle = "mapbox://styles/mapbox/dark-v10";
 
+////////////////////////////////////////////////////////////////////////////////
+// Mapbox
+////////////////////////////////////////////////////////////////////////////////
+
 mapboxgl.accessToken = "pk.eyJ1IjoieXVuaGFvLXFpYW4iLCJhIjoiY2t3amQ1M2dsMWg2ZDJwcDhnY2RvMTFwNSJ9.-I-VVokbvicl2sNiLpLwiQ";
+
 const map = new mapboxgl.Map({
   container: "mapbox-container",
   style: preferDark ? darkMapStyle : lightMapStyle,
   center: [0, 0],
   zoom: 5,
 });
+let isMapLoaded = false;
+map.on("load", () => isMapLoaded = true);
+map.resize();
+
+////////////////////////////////////////////////////////////////////////////////
+// Drawer
+////////////////////////////////////////////////////////////////////////////////
 
 const drawer = document.querySelector("#drawer");
 
@@ -22,12 +34,18 @@ function toggleDrawer() {
   }
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// Tabs
+////////////////////////////////////////////////////////////////////////////////
+
 const mapTab = document.querySelector("#map-tab");
 const aboutTab = document.querySelector("#about-tab");
 let activeTab = undefined;
+
 const mapPage = document.querySelector("#map-page");
 const aboutPage = document.querySelector("#about-page");
 let activePage = undefined;
+
 const mapSettingGroups = document.querySelectorAll("#map-setting-group");
 
 function selectPage(label) {
@@ -53,11 +71,7 @@ function selectPage(label) {
   activePage.classList.add("main-page-active");
 
   if (label === "map") {
-    if (map.loaded()) {
-      map.resize();
-    } else {
-      map.once("load", () => map.resize());
-    }
+    map.resize();
   }
   const mapDisplay = label === "map" ? "flex" : "none";
   for (const group of mapSettingGroups) {
@@ -67,12 +81,16 @@ function selectPage(label) {
 
 selectPage("map");
 
+////////////////////////////////////////////////////////////////////////////////
+// Data query
+////////////////////////////////////////////////////////////////////////////////
+
 function queryMapData() {
   const nStations = 3;
   const nPaths = 100;
 
   function makeLocation() {
-    return [-0.24 + 0.08 * Math.random(), 5.54 + 0.06 * Math.random()];
+    return [-79.4 + 0.08 * Math.random(), 43.7 + 0.08 * Math.random()];
   }
 
   const stations = [];
@@ -89,13 +107,14 @@ function queryMapData() {
     let time = Date.now() - Math.random() * (60 * 24 * 60 * 60 * 1000);
     let iStation = Math.floor(3 * Math.random());
     let location = stations[iStation].location;
+    const direction = [3e-3 * Math.random() - 1.5e-3, 3e-3 * Math.random() - 1.5e-3];
 
-    for (let i = 0; i < 50; ++i) {
+    for (let i = 0; i < 20; ++i) {
       data.push({ time, location });
       time -= Math.random() * (10 * 60 * 1000);
       location = [
-        location[0] + 2e-3 * Math.random() - 1e-3,
-        location[1] + 2e-3 * Math.random() - 1e-3
+        location[0] + direction[0] + 4e-3 * Math.random() - 2e-3,
+        location[1] + direction[1] + 4e-3 * Math.random() - 2e-3,
       ];
     }
     return {
@@ -114,6 +133,11 @@ function queryMapData() {
 }
 
 const { stations, paths } = queryMapData();
+
+////////////////////////////////////////////////////////////////////////////////
+// GeoJSON conversion
+////////////////////////////////////////////////////////////////////////////////
+
 let filteredPaths = [];
 
 function convertToHeatmapData() {
@@ -143,6 +167,10 @@ function convertToPathsData() {
   };
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// Data filtering
+////////////////////////////////////////////////////////////////////////////////
+
 let filteredStations = new Set();
 
 function updateFilteredStations(newStations) {
@@ -163,11 +191,18 @@ function updateFilteredStations(newStations) {
   }
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// Map update
+////////////////////////////////////////////////////////////////////////////////
+
 let selectedLayer = undefined;
 const layerSettingGroup = document.querySelector("#layer-setting-group");
 const stationsSettingGroup = document.querySelector("#stations-setting-group");
 
 function updateMapDisplay() {
+  if (!isMapLoaded) {
+    return;
+  }
   const newStations = new Set();
   for (const input of stationsSettingGroup.querySelectorAll("input")) {
     if (input.checked) {
@@ -191,10 +226,7 @@ function updateMapDisplay() {
   function updateSource(sourceId, data) {
     const source = map.getSource(sourceId);
     if (!source) {
-      map.addSource(sourceId, {
-        type: "geojson",
-        data,
-      });
+      map.addSource(sourceId, { type: "geojson", data });
     } else {
       source.setData(data);
     }
@@ -202,11 +234,20 @@ function updateMapDisplay() {
 
   function showLayer(layerId, type, source) {
     if (typeof map.getLayer(layerId) === "undefined") {
-      map.addLayer({
-        id: layerId,
-        type,
-        source,
-      });
+      let layer = { id: layerId, type, source };
+      if (type === "line") {
+        layer = {
+          ...layer,
+          layout: {
+            "line-join": "round",
+            "line-cap": "round",
+          },
+          paint: {
+            "line-color": theme === "dark" ? "#E0E0E0" : "#202020",
+          },
+        };
+      }
+      map.addLayer(layer);
     }
     map.setLayoutProperty(layerId, "visibility", "visible");
   }
@@ -231,17 +272,23 @@ function updateMapDisplay() {
   }
 }
 
-function updateMapDisplayWhenLoaded() {
-  if (map.loaded()) {
-    updateMapDisplay();
-  } else {
-    map.once("load", () => updateMapDisplay());
-  }
+if (isMapLoaded) {
+  updateMapDisplay();
+} else {
+  map.on("load", updateMapDisplay);
 }
+map.on("styledata", () => {
+  selectedLayer = undefined;
+  updateMapDisplay();
+});
 
 for (const input of layerSettingGroup.querySelectorAll("input")) {
-  input.addEventListener("change", updateMapDisplayWhenLoaded);
+  input.addEventListener("change", updateMapDisplay);
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// Themes
+////////////////////////////////////////////////////////////////////////////////
 
 function setTheme(theme, setMapStyle = true) {
   if (theme === "dark") {
@@ -259,8 +306,6 @@ function setTheme(theme, setMapStyle = true) {
       map.setStyle(lightMapStyle);
     }
   }
-  selectedLayer = undefined;
-  updateMapDisplayWhenLoaded();
 }
 
 let theme = preferDark ? "dark" : "light";
@@ -270,6 +315,10 @@ function toggleTheme() {
   theme = theme === "light" ? "dark" : "light";
   setTheme(theme);
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// Stations settings
+////////////////////////////////////////////////////////////////////////////////
 
 function fillStationsSettingGroup() {
   stationsSettingGroup.innerHTML = "";
@@ -289,7 +338,7 @@ function fillStationsSettingGroup() {
     checkbox.setAttribute("name", "map-station");
     checkbox.setAttribute("value", station.id);
     checkbox.checked = true;
-    checkbox.addEventListener("change", updateMapDisplayWhenLoaded);
+    checkbox.addEventListener("change", updateMapDisplay);
 
     const checkboxSpan = document.createElement("span");
     checkboxSpan.appendChild(checkbox);
@@ -306,6 +355,10 @@ function fillStationsSettingGroup() {
 
 fillStationsSettingGroup();
 
+////////////////////////////////////////////////////////////////////////////////
+// Fitting map bounds
+////////////////////////////////////////////////////////////////////////////////
+
 function fitMapBounds() {
   if (stations.length === 0 || paths.length === 0) {
     return;
@@ -319,12 +372,7 @@ function fitMapBounds() {
       bounds.extend(point.location);
     }
   }
-
-  if (map.loaded()) {
-    map.fitBounds(bounds, { padding: 50 });
-  } else {
-    map.once("load", () => map.fitBounds(bounds, { padding: 50 }));
-  }
+  map.fitBounds(bounds, { padding: 100 });
 }
 
 fitMapBounds();

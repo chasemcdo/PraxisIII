@@ -1,3 +1,16 @@
+:root {
+  --border-radius: 4px;
+  --transition-duration: 0.2s;
+  --navigation-button-size: 48px;
+  --drawer-default-width: 300px;
+  --drawer-width: min(var(--drawer-default-width), 100vw);
+  --accent-color: #039E8F;
+  --drawer-background: #E0E0E0;
+  --drawer-background-dark: #202020;
+  --hover-background: #C0C0C0;
+  --hover-background-dark: #404040;
+}
+
 body {
   font-family: "Open Sans", sans-serif;
 }
@@ -5,7 +18,7 @@ body {
 .dark-theme,
 .dark-theme * {
   color: white;
-  transition: color 0.2s, background-color 0.2s;
+  transition: color var(--transition-duration), background-color var(--transition-duration);
 }
 
 body.dark-theme {
@@ -20,9 +33,9 @@ body.dark-theme {
 }
 
 #navigation-button {
-  width: 48px;
-  height: 48px;
-  border-bottom-right-radius: 4px;
+  width: var(--navigation-button-size);
+  height: var(--navigation-button-size);
+  border-bottom-right-radius: var(--border-radius);
   z-index: 2;
   position: fixed;
   top: 0px;
@@ -30,19 +43,19 @@ body.dark-theme {
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: whitesmoke;
+  background-color: var(--drawer-background);
 }
 
 .dark-theme #navigation-button {
-  background-color: #202020;
+  background-color: var(--drawer-background-dark);
 }
 
 #navigation-button:hover {
-  background-color: lightgray;
+  background-color: var(--hover-background);
 }
 
 .dark-theme #navigation-button:hover {
-  background-color: #484848;
+  background-color: var(--hover-background-dark);
 }
 
 @media (min-width: 768px) {
@@ -52,14 +65,14 @@ body.dark-theme {
 }
 
 #drawer {
-  width: min(300px, 100vw);
+  width: var(--drawer-width);
   height: 100%;
   z-index: 1;
   position: fixed;
   top: 0px;
   left: 0px;
   margin-left: 0px;
-  background-color: whitesmoke;
+  background-color: var(--drawer-background);
   transition-property: margin-left, box-shadow;
   transition-duration: 0.5s;
   display: flex;
@@ -68,11 +81,14 @@ body.dark-theme {
   align-items: center;
   overflow-y: scroll;
   box-sizing: border-box;
-  padding: max(2rem, 24px) calc(min(300px, 100vw) / 16) 2rem calc(min(300px, 100vw) / 16);
+  padding-top: max(2rem, calc(var(--navigation-button-size) / 2));
+  padding-left: calc(var(--drawer-width) / 16);
+  padding-right: calc(var(--drawer-width) / 16);
+  padding-bottom: 2rem;
 }
 
 .dark-theme #drawer {
-  background-color: #202020;
+  background-color: var(--drawer-background-dark);
 }
 
 @media (max-width: 767px) {
@@ -81,7 +97,7 @@ body.dark-theme {
   }
 
   #drawer.drawer-collapsed {
-    margin-left: calc(0px - min(300px, 100vw));
+    margin-left: calc(0px - var(--drawer-width));
     box-shadow: none;
   }
 }
@@ -109,20 +125,20 @@ body.dark-theme {
   font-size: 1.2rem;
   padding: 0.6rem;
   box-sizing: border-box;
-  border-radius: 4px;
+  border-radius: var(--border-radius);
 }
 
 #drawer-tabs>.drawer-tab-active {
-  border-left: 5px solid #039E8F;
+  border-left: 5px solid var(--accent-color);
   padding-left: calc(0.6rem - 5px);
 }
 
 #drawer-tabs>*:hover {
-  background-color: lightgray;
+  background-color: var(--hover-background);
 }
 
 .dark-theme #drawer-tabs>*:hover {
-  background-color: #484848;
+  background-color: var(--hover-background-dark);
 }
 
 .setting-group {
@@ -157,7 +173,7 @@ body.dark-theme {
 }
 
 #theme-icon {
-  transition: transform 0.2s;
+  transition: transform var(--transition-duration);
 }
 
 :hover>#theme-icon {
@@ -177,7 +193,7 @@ body.dark-theme {
 
 @media (min-width: 768px) {
   .main-page {
-    width: calc(100vw - 300px);
+    width: calc(100vw - var(--drawer-default-width));
   }
 }
 
@@ -197,7 +213,7 @@ body.dark-theme {
 
 @media (max-width: 767px) {
   #about-page {
-    padding-top: max(2rem, 48px);
+    padding-top: max(2rem, var(--navigation-button-size));
   }
 }
 
