@@ -46,7 +46,7 @@ const mapPage = document.querySelector("#map-page");
 const aboutPage = document.querySelector("#about-page");
 let activePage = undefined;
 
-const mapSettingGroups = document.querySelectorAll("#map-setting-group");
+const mapSettingGroups = document.querySelectorAll(".map-setting-group");
 
 function selectPage(label) {
   if (typeof activeTab !== "undefined") {
