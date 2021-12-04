@@ -4,6 +4,7 @@ const themeLabel = document.querySelector("#theme-label");
 const lightMapStyle = "mapbox://styles/mapbox/light-v10";
 const darkMapStyle = "mapbox://styles/mapbox/dark-v10";
 const chasePathUrl = "https://raw.githubusercontent.com/chasemcdo/PraxisIII/main/GPS_Tracker/data.txt";
+const msPerDay = 24 * 60 * 60 * 1000;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Mapbox
@@ -58,11 +59,7 @@ function toggleTheme() {
 const drawer = document.querySelector("#drawer");
 
 function toggleDrawer() {
-  if (drawer.classList.contains("drawer-collapsed")) {
-    drawer.classList.remove("drawer-collapsed");
-  } else {
-    drawer.classList.add("drawer-collapsed");
-  }
+  drawer.classList.toggle("drawer-collapsed");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -89,14 +86,17 @@ function selectPage(label) {
     activePage = undefined;
   }
 
-  if (label === "map") {
-    activeTab = mapTab;
-    activePage = mapPage;
-  } else if (label === "about") {
-    activeTab = aboutTab;
-    activePage = aboutPage;
-  } else {
-    return;
+  switch (label) {
+    case "map":
+      activeTab = mapTab;
+      activePage = mapPage;
+      break;
+    case "about":
+      activeTab = aboutTab;
+      activePage = aboutPage;
+      break;
+    default:
+      return;
   }
   activeTab.classList.add("drawer-tab-active");
   activePage.classList.add("main-page-active");
@@ -124,16 +124,17 @@ async function main() {
   async function queryChasePath() {
     const lines = (await (await fetch(chasePathUrl)).text()).split("\n");
     lines.shift();
+    const startTime = new Date(2021, 10, 29, 0, 0, 0, 0).getTime();
     return {
       id: "chase-path",
       station: "uoft-station",
       data: lines.map(line => {
         const fields = line.split(",");
-        const time = parseFloat(fields[0]);
+        const hourOfDay = parseFloat(fields[0]);
         const lat = parseFloat(fields[1]);
         const lng = parseFloat(fields[2]);
         return {
-          time: time * (60 * 60 * 1000),
+          time: startTime + hourOfDay * (60 * 60 * 1000),
           location: [lng, lat],
         };
       }),
@@ -142,11 +143,11 @@ async function main() {
 
   async function queryMapData() {
     const chasePathFuture = queryChasePath();
-    const nStations = 4;
+    const nStations = 3;
     const nPaths = 100;
 
     function makeLocation() {
-      return [-79.4 + 0.08 * Math.random(), 43.7 + 0.08 * Math.random()];
+      return [-79.45 + 0.05 * Math.random(), 43.65 + 0.05 * Math.random()];
     }
 
     const stations = [];
@@ -160,17 +161,17 @@ async function main() {
 
     function makePath(index) {
       const data = [];
-      let time = Date.now() - Math.random() * (60 * 24 * 60 * 60 * 1000);
+      let time = Date.now() - Math.random() * (60 * msPerDay);
       let iStation = Math.floor(nStations * Math.random());
       let location = stations[iStation].location;
-      const direction = [3e-3 * Math.random() - 1.5e-3, 3e-3 * Math.random() - 1.5e-3];
+      const direction = [1e-3 * Math.random() - 5e-4, 1e-3 * Math.random() - 5e-4];
 
       for (let i = 0; i < 20; ++i) {
         data.push({ time, location });
         time -= Math.random() * (10 * 60 * 1000);
         location = [
-          location[0] + direction[0] + 4e-3 * Math.random() - 2e-3,
-          location[1] + direction[1] + 4e-3 * Math.random() - 2e-3,
+          location[0] + direction[0] + 1e-3 * Math.random() - 5e-4,
+          location[1] + direction[1] + 1e-3 * Math.random() - 5e-4,
         ];
       }
       return {
@@ -239,24 +240,38 @@ async function main() {
   // Data filtering
   //////////////////////////////////////////////////////////////////////////////
 
-  let filteredStations = new Set();
+  const layerSettingGroup = document.querySelector("#layer-setting-group");
+  const timeSettingGroup = document.querySelector("#time-setting-group");
+  const stationsSettingGroup = document.querySelector("#stations-setting-group");
 
-  function updateFilteredStations(newStations) {
-    function areSetsEqual(a, b) {
-      if (a.size !== b.size) {
-        return false;
+  function updateFilteredPaths() {
+    const filteredStations = new Set();
+    for (const input of stationsSettingGroup.querySelectorAll("input")) {
+      if (input.checked) {
+        filteredStations.add(input.value);
       }
-      for (const e of a) {
-        if (!b.has(e)) {
-          return false;
+    }
+
+    const now = Date.now();
+    let startTime = -Infinity;
+    for (const input of timeSettingGroup.querySelectorAll("input")) {
+      if (input.checked) {
+        switch (input.value) {
+          case "past-month":
+            startTime = now - 30 * msPerDay;
+            break;
+          case "past-week":
+            startTime = now - 7 * msPerDay;
+            break;
+          case "past-day":
+            startTime = now - msPerDay;
+            break;
         }
+        break;
       }
-      return true;
     }
-    if (typeof filteredStations === "undefined" || !areSetsEqual(filteredStations, newStations)) {
-      filteredStations = newStations;
-      filteredPaths = paths.filter(path => filteredStations.has(path.station));
-    }
+
+    filteredPaths = paths.filter(path => filteredStations.has(path.station) && path.data[0].time >= startTime);
   }
 
   //////////////////////////////////////////////////////////////////////////////
@@ -264,20 +279,12 @@ async function main() {
   //////////////////////////////////////////////////////////////////////////////
 
   let selectedLayer = undefined;
-  const layerSettingGroup = document.querySelector("#layer-setting-group");
-  const stationsSettingGroup = document.querySelector("#stations-setting-group");
 
   function updateMapDisplay() {
     if (!isMapLoaded) {
       return;
     }
-    const newStations = new Set();
-    for (const input of stationsSettingGroup.querySelectorAll("input")) {
-      if (input.checked) {
-        newStations.add(input.value);
-      }
-    }
-    updateFilteredStations(newStations);
+    updateFilteredPaths();
 
     let newLayer = undefined;
     for (const input of layerSettingGroup.querySelectorAll("input")) {
@@ -353,6 +360,9 @@ async function main() {
   for (const input of layerSettingGroup.querySelectorAll("input")) {
     input.addEventListener("change", updateMapDisplay);
   }
+  for (const input of timeSettingGroup.querySelectorAll("input")) {
+    input.addEventListener("change", updateMapDisplay);
+  }
 
   //////////////////////////////////////////////////////////////////////////////
   // Stations settings
@@ -410,7 +420,7 @@ async function main() {
         bounds.extend(point.location);
       }
     }
-    map.fitBounds(bounds, { padding: 100 });
+    map.fitBounds(bounds, { padding: 50 });
   }
 
   fitMapBounds();

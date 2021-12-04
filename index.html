@@ -13,7 +13,8 @@
   <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/v2.6.0/mapbox-gl.css">
   <script src="https://api.mapbox.com/mapbox-gl-js/v2.6.0/mapbox-gl.js"></script>
 
-  <link rel="icon" type="image/svg" href="repsicology.svg">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="apple-touch-icon" type="image/png" href="favicon.png">
   <link rel="stylesheet" href="index.css">
 </head>
 
@@ -59,6 +60,34 @@
             <input type="radio" id="map-layer-none" name="map-layer" value="none">
           </span>
           <label for="map-layer-none">None</label>
+        </div>
+      </div>
+
+      <div id="time-setting-group" class="setting-group map-setting-group">
+        <div class="setting-header">Time</div>
+        <div class="setting-item">
+          <span>
+            <input type="radio" id="map-time-all" name="map-time" value="all" checked>
+          </span>
+          <label for="map-time-all">All</label>
+        </div>
+        <div class="setting-item">
+          <span>
+            <input type="radio" id="map-time-past-month" name="map-time" value="past-month">
+          </span>
+          <label for="map-time-past-month">Past Month</label>
+        </div>
+        <div class="setting-item">
+          <span>
+            <input type="radio" id="map-time-past-week" name="map-time" value="past-week">
+          </span>
+          <label for="map-time-past-week">Past Week</label>
+        </div>
+        <div class="setting-item">
+          <span>
+            <input type="radio" id="map-time-past-day" name="map-time" value="past-day">
+          </span>
+          <label for="map-time-past-day">Past Day</label>
         </div>
       </div>
 
